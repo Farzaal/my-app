@@ -169,7 +169,7 @@ function App() {
         </Paper>
       </Grid>
       <Grid item xs={6}>
-      <Paper expanded={"true"} style={{ minHeight: '100vh', border: '2px solid #ddd' }}>
+      <Box expanded={"true"} style={{ minHeight: '100vh', border: '2px solid #ddd' }}>
           <Typography variant="h4">
             Locofy Screeens/Pages And Components 
           </Typography>
@@ -180,7 +180,7 @@ function App() {
             <LocofyList val={4} setSelectedComponent={setSelectedComponent} expandedText={'Tooltip'} items={['tooltip.js', 'tooltip.css', 'tooltip_warning.svg', 'tooltip_success.svg']} />
             <LocofyList val={5} setSelectedComponent={setSelectedComponent} expandedText={'Card'} items={['card.js', 'card.css', 'card_warning.svg', 'card_success.svg']} />
           </Grid>
-      </Paper>
+      </Box>
       </Grid>
     </Grid>
     </div>
