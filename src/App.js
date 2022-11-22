@@ -171,7 +171,7 @@ function App() {
       <Grid item xs={6}>
       <Paper expanded={"true"} style={{ minHeight: '100vh', border: '2px solid #ddd' }}>
           <Typography variant="h4">
-            Locofy Screeens And Components 
+            Locofy Screeens/Pages And Components 
           </Typography>
           <Grid container direction="column" justifyContent="space-evenly" style={{ margin: '20px' }}>
             <LocofyList val={1} setSelectedComponent={setSelectedComponent} expandedText={'Button'} items={['Button.js', 'Button.css', 'btn_warning.svg', 'btn_success.svg']} />
