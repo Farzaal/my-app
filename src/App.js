@@ -22,6 +22,7 @@ import Button from '@mui/material/Button';
 import Skeleton from '@mui/material/Skeleton';
 import { useTheme } from '@mui/material/styles';
 import LinearProgress from '@mui/material/LinearProgress';
+import {MonacoProvider, DiffEditor} from '@memsetzero/react-monaco-editor';
 
 function App() {
   const [loading, setLoading] = React.useState(false);
@@ -136,55 +137,16 @@ function App() {
 
   return (
     <div>
-    <AlertDialog open={showDialog} handleClose={handleClose} />
-    <Header />
-    <InputPanel GithubCloneRepoApiCall={GithubCloneRepoApiCall} />
-    <div>
-    <Grid container direction="row" justifyContent="flex-end" alignItems="center">
-    <Box sx={{ '& button': { m: 1 } }}>
-      <div>
-        <Button variant="outlined" size="large" onClick={moveComponent} >Move Component</Button>
-        <Button variant="contained" size="large">Commit And Push</Button>
-        <FormControlLabel control={<Checkbox />} label="Raise PR" />
+      <MonacoProvider theme="vs-dark">
+        <Editor 
+          style={{width: "100%", height: "600px"}}
+          value="Hello, Monaco World!"
+          options={{
+            lineNumbers: false
+          }}
+        />
+      </MonacoProvider>
       </div>
-    </Box>
-    </Grid>
-    <Grid container direction="row">
-      <Grid item xs={6}>
-        <Paper expanded={"true"} style={{ minHeight: '100vh', border: '2px solid #ddd' }}>
-            { loading ? <LinearProgress /> : '' }
-            <Typography variant="h4">
-              User Github Repository
-            </Typography>
-            { repository.length == 0 ? <Skeleton variant="rectangular" width="100%" height="100vh" /> : '' }
-          <TreeView
-            aria-label="rich object"
-            defaultCollapseIcon={<ExpandMoreIcon />}
-            defaultExpanded={['root']}
-            defaultExpandIcon={<ChevronRightIcon />}
-            onNodeSelect={handleChange}
-            sx={{ flexGrow: 1, maxWidth: 400, overflowY: 'auto' }}>
-              {repository.map(repo => renderTree(repo))}
-          </TreeView>
-        </Paper>
-      </Grid>
-      <Grid item xs={6}>
-      <Box expanded={"true"} style={{ minHeight: '100vh', border: '2px solid #ddd' }}>
-          <Typography variant="h4">
-            Locofy Screeens/Pages And Components 
-          </Typography>
-          <Grid container direction="column" justifyContent="space-evenly" style={{ margin: '20px' }}>
-            <LocofyList val={1} setSelectedComponent={setSelectedComponent} expandedText={'Button'} items={['Button.js', 'Button.css', 'btn_warning.svg', 'btn_success.svg']} />
-            <LocofyList val={2} setSelectedComponent={setSelectedComponent} expandedText={'Popup'} items={['index.js', 'popup.css', 'popup_logo.svg', 'popup_uiop.svg']} />
-            <LocofyList val={3} setSelectedComponent={setSelectedComponent} expandedText={'Calender'} items={['calender.js', 'calender.css', 'cal_warning.svg', 'cal_success.svg']} />
-            <LocofyList val={4} setSelectedComponent={setSelectedComponent} expandedText={'Tooltip'} items={['tooltip.js', 'tooltip.css', 'tooltip_warning.svg', 'tooltip_success.svg']} />
-            <LocofyList val={5} setSelectedComponent={setSelectedComponent} expandedText={'Card'} items={['card.js', 'card.css', 'card_warning.svg', 'card_success.svg']} />
-          </Grid>
-      </Box>
-      </Grid>
-    </Grid>
-    </div>
-    </div>
   );
 }
 
