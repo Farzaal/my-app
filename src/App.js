@@ -5,14 +5,40 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import * as JSZip from 'jszip'
+import TreeView from '@mui/lab/TreeView';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import TreeItem from '@mui/lab/TreeItem';
+import { Header } from './components/Header';
+import { LocofyList } from './components/LocofyList';
+import { InputPanel } from './components/InputPanel';
+import { AlertDialog } from './components/AlertDialog';
+import { v4 as uuidv4 } from 'uuid';
+import Paper from '@mui/material/Paper';
+import FormGroup from '@mui/material/FormGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
+import Button from '@mui/material/Button';
+import Skeleton from '@mui/material/Skeleton';
+import { useTheme } from '@mui/material/styles';
+import LinearProgress from '@mui/material/LinearProgress';
 
 function App() {
   const [loading, setLoading] = React.useState(false);
   const [repository, setRepository] = React.useState([]);
+  const [maxNodeId, setMaxNodeId] = React.useState(0);
+  const [expanded, setExpanded] = React.useState(true);
   const [directory, setDirectory] = React.useState([]);
+  const [repoLoaded, setRepoLoaded] = React.useState(false);
+  const [showDialog, setShowDialog] = React.useState(false);
+  const [selectedComponent, setSelectedComponent] = React.useState('');
 
-  useEffect(() => {
-    fetch('https://dat20jvqpp4ts.cloudfront.net/63350e0ad191c206085c9326/e5aead5c-7dea-4d1f-84b5-adbe0fe09e05_1667542651488213949?Expires=-62135596800&Signature=VnwPYI42auy3Y~zA1XNOrPkHUZYGYrL7Nu4zV1hJJK3t27ImXpCI~hX9oiLSogeWetOXZnllZTvOt2JA3ay1GgPmxlOF-HB7Xk6QGequXaNfYm5LfjHX2zBmS16Eu8KAD0Q5tR3uApFasx6~swtsjmiQcGgYWF0Lr9tRZAZ6RoxQXkbBnY1NoPb9oT2-yt4uEyopkDpbejw7eFHyQvqN0ZQfTs8ZIPceO1Xc5zdRXhg7UPyEEzkshF~0zgtRQ~mkSq~PuELKYCLJ6eWwTg0OaUy97WdirZ0syH9BWS9N4nJBSuRBh89OwWVdsb3FG~1to2dzHyv7ln-BJp~3GWc~uQ__&Key-Pair-Id=K2EOYUP2MYY488/')
+  const LoadRepositoryToTree = (url) => {
+    if(!url) {
+      setLoading(false)
+      return
+    }
+    fetch(url)
     .then((response) => response.blob())
     .then((blob) => {
       var zip = new JSZip();
@@ -29,7 +55,9 @@ function App() {
           paths.push(filename)
         })
         setDirectory(folders)
+        let nodeIdentifier = 0
         paths.forEach(path => {
+          nodeIdentifier = nodeIdentifier+1
           path.split('/').reduce((r, name, i, a) => {
             if (name == "") {
               return
@@ -39,75 +67,124 @@ function App() {
                 return
               }
               r[name] = {result: []};
-              r.result.push({name, values: r[name].result })
+              r.result.push({
+                name, id: uuidv4(), 
+                children: r[name].result, 
+                disabled: false
+                // disabled: !folders.includes(name) ? true : false
+              })
             }
             return r[name];
           }, level)
         })
+        setMaxNodeId(nodeIdentifier)
         setRepository(result)
+        setLoading(false)
       })
+    }).catch(err => {
+      setLoading(false)
+      console.log('An error occurred while fetching github repository', err)
     });
-  }, [])
+  }
 
-  const SelectedDirectory = (event, type) => {
-    // console.log(type)
-  };
-
-  function ListTreeItem({ item }) {
-    let children = null;
-    if (item.values && item.values.length) {
-      children = (
-        <ul>
-          {item.values.map(i => (
-            <ListTreeItem item={i} key={i.name} />
-          ))}
-        </ul>
-      );
-    }
-  
+  const renderTree = (nodes) => {
     return (
-      <li onClick={event => SelectedDirectory(event, item.name)} style={{
-        fontWeight: 'bold', 
-        margin:'10px',
-        listStyleType: 'lower-alpha'
-      }}>
-        {item.name}
-        {children}
-      </li>
+      <TreeItem key={nodes.id} nodeId={nodes.id} label={nodes.name} disabled={nodes.disabled}>
+        {Array.isArray(nodes.children)
+          ? nodes.children.map((node) => renderTree(node))
+          : null}
+      </TreeItem>
     );
   }
 
-  if (loading) {
-    return (
-      <Grid container direction="column" justifyContent="center" alignItems="center" style={{height: '80vh'}}>
-        <CircularProgress color="primary" size={90} thickness={5.0} variant="indeterminate" />
-        <Typography variant="h6" component="h6">
-          Please Wait Downloading Repository
-        </Typography>;
-      </Grid>
-    )
-  }
+  const moveComponent = () => {
+    if (selectedComponent == 'Card') {
+      setShowDialog(true)
+      console.log(selectedComponent)
+    }
+  } 
+
+  const handleClose = () => setShowDialog(!showDialog);
+
+  const handleChange = (event, nodeId) => {};
+
+  const GithubCloneRepoApiCall = async (data) => {
+    try {
+      setLoading(true)
+      var myHeaders = new Headers();
+      myHeaders.append("Content-Type", "application/json");
+
+      fetch('https://mc0isynw3j.execute-api.ap-southeast-1.amazonaws.com/v1/github_directory', {
+        method: 'post',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          "user_name": "Farzaal",
+          "github_token": "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", // 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
+          "repo_name": "Farzaal/hospicare_admin", //hospicare_admin
+          "branch": "master"
+        })
+      }).then(function(response) {
+        return response.json();
+      }).then(function(data) {
+        LoadRepositoryToTree(data.download_url)
+      });
+    } catch(err) {
+      setLoading(false)
+      console.log("ERROR :: ", err)
+    }
+  };
 
   return (
-    <Grid container spacing={6}>
+    <div>
+    <AlertDialog open={showDialog} handleClose={handleClose} />
+    <Header />
+    <InputPanel GithubCloneRepoApiCall={GithubCloneRepoApiCall} />
+    <div>
+    <Grid container direction="row" justifyContent="flex-end" alignItems="center">
+    <Box sx={{ '& button': { m: 1 } }}>
+      <div>
+        <Button variant="outlined" size="large" onClick={moveComponent} >Move Component</Button>
+        <Button variant="contained" size="large">Commit And Push</Button>
+        <FormControlLabel control={<Checkbox />} label="Raise PR" />
+      </div>
+    </Box>
+    </Grid>
+    <Grid container direction="row">
       <Grid item xs={6}>
-      <Box sx={{ overflowY: 'auto', border: '1px solid #ddd', height: '100vh' }}>
-      <Typography variant="h4" gutterBottom>
-        User Github Repository
-      </Typography>
-          {repository.map(i => (
-            <ListTreeItem item={i} key={i.name} />
-          ))}
-      </Box>
+        <Paper expanded={"true"} style={{ minHeight: '100vh', border: '2px solid #ddd' }}>
+            { loading ? <LinearProgress /> : '' }
+            <Typography variant="h4">
+              User Github Repository
+            </Typography>
+            { repository.length == 0 ? <Skeleton variant="rectangular" width="100%" height="100vh" /> : '' }
+          <TreeView
+            aria-label="rich object"
+            defaultCollapseIcon={<ExpandMoreIcon />}
+            defaultExpanded={['root']}
+            defaultExpandIcon={<ChevronRightIcon />}
+            onNodeSelect={handleChange}
+            sx={{ flexGrow: 1, maxWidth: 400, overflowY: 'auto' }}>
+              {repository.map(repo => renderTree(repo))}
+          </TreeView>
+        </Paper>
       </Grid>
       <Grid item xs={6}>
-      <Box sx={{ overflowY: 'auto', border: '1px solid #ddd', height: '100vh' }}>
-      <Typography variant="h4" gutterBottom>
-        Locofy Components
-      </Typography>
-      </Box>
+      <Paper expanded={"true"} style={{ minHeight: '100vh', border: '2px solid #ddd' }}>
+          <Typography variant="h4">
+            Locofy Screeens And Components 
+          </Typography>
+          <Grid container direction="column" justifyContent="space-evenly" style={{ margin: '20px' }}>
+            <LocofyList val={1} setSelectedComponent={setSelectedComponent} expandedText={'Button'} items={['Button.js', 'Button.css', 'btn_warning.svg', 'btn_success.svg']} />
+            <LocofyList val={2} setSelectedComponent={setSelectedComponent} expandedText={'Popup'} items={['index.js', 'popup.css', 'popup_logo.svg', 'popup_uiop.svg']} />
+            <LocofyList val={3} setSelectedComponent={setSelectedComponent} expandedText={'Calender'} items={['calender.js', 'calender.css', 'cal_warning.svg', 'cal_success.svg']} />
+            <LocofyList val={4} setSelectedComponent={setSelectedComponent} expandedText={'Tooltip'} items={['tooltip.js', 'tooltip.css', 'tooltip_warning.svg', 'tooltip_success.svg']} />
+            <LocofyList val={5} setSelectedComponent={setSelectedComponent} expandedText={'Card'} items={['card.js', 'card.css', 'card_warning.svg', 'card_success.svg']} />
+          </Grid>
+      </Paper>
       </Grid>
     </Grid>
+    </div>
+    </div>
   );
 }
 
