@@ -119,7 +119,7 @@ function App() {
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({
           "user_name": "Farzaal",
-          "github_token": "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", // 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
+          "github_token": "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", // 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
           "repo_name": "Farzaal/hospicare_admin", //hospicare_admin
           "branch": "master"
         })
