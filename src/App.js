@@ -1,8 +1,7 @@
-import * as React from 'react';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 
-function App() {
+function Apppp() {
   return (
     <Stack spacing={2} direction="row">
       <Button variant="text">Text</Button>
@@ -12,4 +11,4 @@ function App() {
   );
 }
 
-export default App;
+export default Apppp;
